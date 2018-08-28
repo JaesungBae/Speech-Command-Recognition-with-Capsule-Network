@@ -1,6 +1,6 @@
 End-to-End Speech Command Recognition with Capsule Network
 ==========================
-INTERSPEECH 2018
+INTERSPEECH 2018 accepted
 
 paper: link(to be updated)
 
