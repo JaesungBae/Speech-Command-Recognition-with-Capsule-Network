@@ -10,22 +10,22 @@ We apply the capsule network to capture the spatial relationship and pose inform
 Data folder structure
 ---
 	feature_saved
-	└TEST
-	 └fbank
-	  └clean
-	  └[noise names]
-	  └[noise names]_SNR5
-	 └label
-	└TRAIN
-	 └fbank
-	  └clean
-	  └[noise names]
-	 └label
-	└VALID
-	 └fbank
-	  └clean
-	  └[noise names]
-	 └label
+	└ TEST
+	  └ fbank
+	    └ clean
+	    └ [noise names]
+	    └ [noise names]_SNR5
+	  └ label
+	└ TRAIN
+	  └ fbank
+	    └ clean
+	    └ [noise names]
+	  └ label
+	└ VALID
+	  └ fbank
+	    └ clean
+	    └ [noise names]
+	  └ label
 
 
 
