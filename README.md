@@ -30,13 +30,13 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 	|-- Google_Speech_Command
 	|   |-- bed
 	|   |-- bird
-		:
+	 :	:
 	|   '-- zero
 	|-- testing_list
 	|-- validation_list
 	'-- etc.
 	
-3.
+3. run matlab code.
 	
 
 ### Data folder structure
