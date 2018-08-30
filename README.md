@@ -14,10 +14,6 @@ You should be ready to import below libraries:
 	tqdm, numpy(1.14.1), termcolor, scipy, sklearn, scikits
 	tensorflow(1.6.0), keras(2.1.4)
 
-abc
-	code test
-abc
-
 
 Dataset
 ---
@@ -29,12 +25,6 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 1. Unzip download google speech command dataset and unzip it as name "Google_speech_command_dataset"
 
 2. Create new folder name 'Google_Speech_Command' and move command folders it. Then the folder structure will be like
-
-	aa
-	
-3. aaa
-
-
 	Google_speech_command_dataset
 	|-- _backgorund_noise_
 	|-- Google_Speech_Command
@@ -45,6 +35,8 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 	|-- testing_list
 	|-- validation_list
 	'-- etc.
+	
+3.
 	
 
 ### Data folder structure
