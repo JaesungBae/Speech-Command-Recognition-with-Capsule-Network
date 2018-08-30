@@ -25,22 +25,22 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 
 ### Data folder structure
 	feature_saved
-		TEST
-	  ¦¦ fbank
-	    ¦¦ clean
-	    ¦¦ [noise names]
-	    ¦¦ [noise names]_SNR5
-	  ¦¦ label
-	¦¦ TRAIN
-	  ¦¦ fbank
-	    ¦¦ clean
-	    ¦¦ [noise names]
-	  ¦¦ label
-	¦¦ VALID
-	  ¦¦ fbank
-	    ¦¦ clean
-	    ¦¦ [noise names]
-	  ¦¦ label
+	- TEST
+	  - fbank
+	    - clean
+	    - [noise names]
+	    - [noise names]_SNR5
+	  - label
+	- TRAIN
+	  - fbank
+	    - clean
+	    - [noise names]
+	  - label
+	- VALID
+	  - fbank
+	    - clean
+	    - [noise names]
+	  - label
 
 
 
