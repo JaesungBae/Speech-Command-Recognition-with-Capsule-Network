@@ -27,6 +27,11 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 
 2. Create new folder name 'Google_Speech_Command' and move command folders it. Then the folder structure will be like
 
+	aa
+	
+3. aaa
+
+
 	Google_speech_command_dataset
 	|-- _backgorund_noise_
 	|-- Google_Speech_Command
