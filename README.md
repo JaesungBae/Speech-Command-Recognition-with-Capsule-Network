@@ -25,6 +25,7 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 1. Unzip download google speech command dataset and unzip it as name "Google_speech_command_dataset"
 	    
 2. Create new folder name 'Google_Speech_Command' and move command folders it. Then the folder structure will be like
+'''
 	Google_speech_command_dataset
 	|-- [_backgorund_noise_]
 	|-- Google_Speech_Command
@@ -35,7 +36,7 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 	|-- testing_list
 	|-- validation_list
 	'-- etc.
-	
+'''	
 3. Run matlab code.
 	
 
