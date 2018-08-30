@@ -42,6 +42,7 @@ speech_commands_v0.01.tar
 ```	
 noise_wave_generate.m
 ```	
+4. You could aslo change 'SNR' in the code and generate noise audio files as you want.
 
 ### Data folder structure
 	feature_saved
