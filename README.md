@@ -35,7 +35,7 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 	|   |-- fbank
 	|   |   |-- clean
 	|   |   '-- [noise names]
-	|   |-- label
+	|   '-- label
 	'-- VALID
 	    |-- fbank
 	    |   |-- clean
