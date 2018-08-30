@@ -38,7 +38,7 @@ speech_commands_v0.01.tar
 '-- etc.
 ```
 
-3. Change 'data_path' in matlab code and run the matlab code.
+3. Change 'data_path' in matlab code and run the matlab code. It will generate new folder and save the noise added audio files.
 ```	
 noise_wave_generate.m
 ```	
