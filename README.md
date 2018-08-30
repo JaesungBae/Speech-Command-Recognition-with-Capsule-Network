@@ -44,8 +44,9 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 
 Reference
 ---
-Preprocessing source code from https://github.com/zzw922cn/Automatic_Speech_Recognition
-Base capsule network keras source code from https://github.com/XifengGuo/CapsNet-Keras
+Preprocessing source code from https://github.com/zzw922cn/Automatic_Speech_Recognition.
+
+Base capsule network keras source code from https://github.com/XifengGuo/CapsNet-Keras.
 
 
 Authors
