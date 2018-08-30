@@ -39,7 +39,9 @@ To add noise to the original dataset, we use MATLAB and [voicebox](http://www.ee
 ```
 
 3. Run matlab code.
-	
+```	
+	noise_wave_generate.m
+```	
 
 ### Data folder structure
 	feature_saved
