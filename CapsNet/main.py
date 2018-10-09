@@ -11,7 +11,6 @@ sys.path.append('../')
 # User
 from core.data_utils import load_specific_noisy_data, load_random_noisy_data, DATA, Dimension
 from core.args import parameter_print
-from core.analysis import Analysis, TSNE_
 from capsulenet import CapsNet_WithDecoder, margin_loss, CapsNet_NoDecoder
 # keras
 from keras.utils import multi_gpu_model
@@ -100,15 +99,6 @@ def test(model, data, args):
     print('Test with 20 labels acc:', label21_acc)
     print('-'*30 + 'End: test' + '-'*30)
     ##
-    ##Confusion Matrix Generate
-    ##
-    Anal = Analysis(args)
-    #Anal.ConfusionMatrix_Generate(y_pred30=np.argmax(y_pred, 1), teY30=np.argmax(teY, 1), y_pred20=A,teY20=B)
-    #Anal.RawPredictMatrix_Generate(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
-    #Anal.MatrixSave(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
-    _ = Anal.Capsule_CNN_Compare(23,24)
-    _ = Anal.Capsule_CNN_Compare(24,23)
-    Anal.StopCode()
     return label30_acc, label21_acc
 
 
@@ -158,16 +148,7 @@ if __name__ == "__main__":
 
     data = DATA(args.is_training, args.train_with, args.test_with,
                                 args.data_path, mode=args.mode,dimension=args.dimension) #[sample,99,40,3]
-    ##########################################
-    # Analysis
-    ##########################
-    Anal = Analysis(args)
-    DataNum1 = Anal.Capsule_CNN_Compare(23,24)
-    DataNum2 = Anal.Capsule_CNN_Compare(24,23)
-    Anal.Capsule_CNN_spectrogram(DataNum1,23,24,X=data[0])
-    Anal.Capsule_CNN_spectrogram(DataNum1,24,23,X=data[0])
-    Anal.StopCode()
-
+    
     X = data[0]
     Y = data[1]
     # Define Model
