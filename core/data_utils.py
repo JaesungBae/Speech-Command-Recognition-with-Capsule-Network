@@ -111,7 +111,7 @@ def Dimension(data,dimension):
                 if dimension is 3 -> use full dimension.
     '''
     if dimension < 3:
-        data = np.expand_dims(data[:,:,:,1],axis=3)
+        data = np.expand_dims(data[:,:,:,dimension],axis=3)
     elif dimension == 3:
         pass
     else:

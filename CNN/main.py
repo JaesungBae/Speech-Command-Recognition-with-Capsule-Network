@@ -1,88 +1,55 @@
-###########################
-# Capsule Network Main.py #
-###########################
+###############
+# CNN Main.py #
+###############
 
 import tensorflow as tf
 from tqdm import tqdm
 import numpy as np
 from termcolor import colored, cprint
-import time, os, sys
+import time 
+import os, sys
 sys.path.append('../')
 # User
 from core.data_utils import load_specific_noisy_data, load_random_noisy_data, DATA, Dimension
 from core.args import parameter_print
-from core.analysis import Analysis, TSNE_
-from capsulenet import CapsNet_WithDecoder, margin_loss, CapsNet_NoDecoder
-# keras
+from core.analysis import Analysis
+from model import CNN, CNN_0320, CNN_0314, CNN_0320_326464
+# Keras
 from keras.utils import multi_gpu_model
 from keras import callbacks, layers, optimizers
 from keras import backend as K
-
-
-
+from keras.losses import categorical_crossentropy
 
 def train(multi_model, data, save_path, args):
     trX, trY, vaX, vaY = data
     print(str(trX.shape),str(trY.shape),str(vaX.shape),str(vaY.shape))
     
     multi_model.compile(optimizer=optimizers.Adam(lr=args.learning_rate),
-                  loss=[margin_loss, 'mse'],
-                  loss_weights=[1., args.lam_recon],
-                  metrics=['accuracy'])    
-    # callbacks
-    log = callbacks.CSVLogger(save_path + '/log.csv')
-    #tb = callbacks.TensorBoard(log_dir=save_path + '/tensorboard-logs',
-    #                           batch_size=args.batch_size, histogram_freq=args.debug)
-    checkpoint = callbacks.ModelCheckpoint(save_path + '/weights-{epoch:03d}.h5py', monitor='val_capsnet_acc',
-                                           save_best_only=True, save_weights_only=True, verbose=1)
-    earlystop = callbacks.EarlyStopping(monitor='val_decoder_acc', min_delta=0, patience=10, verbose=1, mode='auto')
-    #lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.learning_rate * (0.9 ** args.num_epoch))
-    multi_model.fit([trX, trY],[trY,trX],
-              batch_size=args.batch_size, epochs=args.num_epoch,
-              #validation_split = 0.1,
-              validation_data=[[vaX,vaY],[vaY,vaX]], 
-              shuffle = True,
-              callbacks=[log, checkpoint, earlystop])
-    
-def train_NoDecoder(multi_model, data, save_path, args):
-    trX, trY, vaX, vaY = data
-    print(str(trX.shape),str(trY.shape),str(vaX.shape),str(vaY.shape))
-    
-    if args.ex_name == 'best':
-        multi_model.compile(optimizer=optimizers.SGD(lr=args.learning_rate),
-                  loss=[margin_loss],
-                  metrics=['accuracy'])    
-    else:     
-        multi_model.compile(optimizer=optimizers.Adam(lr=args.learning_rate),
-                  loss=[margin_loss],
-                  metrics=['accuracy'])    
+                  loss=categorical_crossentropy,
+                  metrics=['accuracy']
+                  )
     # callbacks
     log = callbacks.CSVLogger(save_path + '/log.csv')
     #tb = callbacks.TensorBoard(log_dir=save_path + '/tensorboard-logs',
     #                           batch_size=args.batch_size, histogram_freq=args.debug)
     checkpoint = callbacks.ModelCheckpoint(save_path + '/weights-{epoch:03d}.h5py', monitor='val_acc',
                                            save_best_only=True, save_weights_only=True, verbose=1)
-    earlystop = callbacks.EarlyStopping(monitor='val_acc', min_delta=0, patience=10, verbose=1, mode='auto')
+    earlystop = callbacks.EarlyStopping(monitor='val_acc', min_delta=0, patience=20, verbose=1, mode='auto')
     #lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.learning_rate * (0.9 ** args.num_epoch))
+    
+
     multi_model.fit(trX, trY,
               batch_size=args.batch_size, epochs=args.num_epoch,
               #validation_split = 0.1,
               validation_data=[vaX,vaY], 
               shuffle = True,
-              callbacks=[log, checkpoint, earlystop])
-
-
+              callbacks=[log, checkpoint])
 
 def test(model, data, args):
     teX,teY = data
     print('-'*30 + 'Begin: test with ' + '-'*30)
-    if args.decoder == 1:
-        y_pred, x_recon = model.predict([teX,teY],batch_size=args.batch_size)
-    else:
-        y_pred= model.predict(teX,batch_size=args.batch_size)
-#    print('TSNE start...')
-#    TSNE_(y_pred,teY,NumLabel=21)
-#    print("TSNE done... ")
+    y_pred = model.predict(teX,batch_size=args.batch_size)
+
     label30_acc = float(np.sum(np.argmax(y_pred, 1) == np.argmax(teY, 1)))/float(teY.shape[0])
     print('Test with 30 labels acc:', label30_acc )
     A = np.argmax(y_pred, 1)
@@ -105,13 +72,9 @@ def test(model, data, args):
     Anal = Analysis(args)
     #Anal.ConfusionMatrix_Generate(y_pred30=np.argmax(y_pred, 1), teY30=np.argmax(teY, 1), y_pred20=A,teY20=B)
     #Anal.RawPredictMatrix_Generate(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
-    #Anal.MatrixSave(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
-    _ = Anal.Capsule_CNN_Compare(23,24)
-    _ = Anal.Capsule_CNN_Compare(24,23)
+    Anal.MatrixSave(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
     Anal.StopCode()
     return label30_acc, label21_acc
-
-
     '''
     def text_to_label(text):
     return {'bed':0, 'bird':1, 'cat':2, 'dog':3, 'down':4, 
@@ -137,63 +100,46 @@ def test(model, data, args):
     plt.show()
     '''
 
-
-
 if __name__ == "__main__":
     from core.data_utils import load_specific_noisy_data
     from core.args import args
     args = args()
+    '''
+    parser.add_argument('--kernel', default=19, type=int,
+                        help="Convlution and Primary cpasule layer's kernel size.")
+    parser.add_argument('--primary_channel', default=32, type=int)
+    parser.add_argument('--primary_veclen', default=8, type=int)
+    '''
     ex_name = args.ex_name+'_'+args.train_with+'_'+args.test_with
-    parameter_print(args,ex_name=ex_name,ModelType="CapsuleNet")
+    parameter_print(args,ex_name=ex_name,ModelType='CNN')
     save_path = os.path.join(args.project_path,'save',args.model,ex_name)
     cprint('save_path: '+str(save_path),'yellow')
     if args.is_training == 'TEST' and args.SNR == None:
         raise ValueError('For TEST you should set SNR')
-
     # Setting & Parameters
     #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
     # Data Load
-
-
     data = DATA(args.is_training, args.train_with, args.test_with,
-                                args.data_path, mode=args.mode,dimension=args.dimension) #[sample,99,40,3]
-    ##########################################
-    # Analysis
-    ##########################
-    Anal = Analysis(args)
-    DataNum1 = Anal.Capsule_CNN_Compare(23,24)
-    DataNum2 = Anal.Capsule_CNN_Compare(24,23)
-    Anal.Capsule_CNN_spectrogram(DataNum1,23,24,X=data[0])
-    Anal.Capsule_CNN_spectrogram(DataNum1,24,23,X=data[0])
-    Anal.StopCode()
-
+                                args.data_path, mode=args.mode, dimension=args.dimension) #[sample,99,40,3]
     X = data[0]
     Y = data[1]
     # Define Model
     cprint(str(len(np.unique(np.argmax(Y, 1)))), 'red')
     with tf.device('/cpu:0'):
-        if args.decoder == 1:
-            model, eval_model, manipulate_model = CapsNet_WithDecoder(input_shape=X.shape[1:],
-                                                          n_class=len(np.unique(np.argmax(Y, 1))),
-                                                          kernel=args.kernel,
-                                                          primary_channel=args.primary_channel,
-                                                          primary_veclen=args.primary_veclen,
-                                                          digit_veclen = args.digit_veclen,
-                                                          dropout = args.dropout,
-                                                          routings=args.routings,
-                                                          decoderParm=(args.NumDecoderLayer,
-                                                            [args.DecoderLayer1,args.DecoderLayer2,args.DecoderLayer3]
-                                                            ))
+        if args.ex_name == '0314':
+            model = CNN_0314(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))),)
+        elif args.ex_name == '0320':
+            model = CNN_0320(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))),)
+        elif args.ex_name == '0320_326464' or 'dim0_0929':
+            model = CNN_0320_326464(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))),)
         else:
-            model = CapsNet_NoDecoder(input_shape=X.shape[1:],
-                                    n_class=len(np.unique(np.argmax(Y, 1))),
-                                    kernel=args.kernel,
-                                    primary_channel=args.primary_channel,
-                                    primary_veclen=args.primary_veclen,
-                                    digit_veclen = args.digit_veclen,
-                                    dropout = args.dropout,
-                                    routings=args.routings)
+            model = CNN(input_shape=X.shape[1:],
+                n_class=len(np.unique(np.argmax(Y, 1))),
+                CNNkernel=args.CNNkernel,
+                CNNChannel=args.CNNChannel,
+                DenseChannel=args.DenseChannel,
+                )
     model.summary()
     multi_model = multi_gpu_model(model, gpus=args.gpus)
 
@@ -205,18 +151,11 @@ if __name__ == "__main__":
         multi_model.load_weights(save_path + '/weights-%03d.h5py'% args.keep)
         #model.load(save_path)
     else:
-        if args.ex_name == 'best':
-            cprint('load weight from:' + '/home/jsbae/STT2/KWS/save/CapsNet/0320_digitvec4_clean_clean/weights-012.h5py', 'yellow')
-            multi_model.load_weights('/home/jsbae/STT2/KWS/save/CapsNet/0320_digitvec4_clean_clean/weights-012.h5py')
-        else:
-            cprint('save weight to: ' + save_path, 'yellow')
+        cprint('save weight to: ' + save_path, 'yellow')
 
     # Model training or testing
     if args.is_training == 'TRAIN':
-        if args.decoder == 1:
-            train(multi_model,data=data,save_path=save_path,args=args)
-        else:
-            train_NoDecoder(multi_model,data=data,save_path=save_path,args=args)
+        train(multi_model,data=data,save_path=save_path,args=args)
         model.save_weights(save_path + '/trained_model.h5py')
         print('Trained model saved to \'%s/trained_model.h5py\'' % save_path)
     elif args.is_training == 'TEST':
@@ -225,7 +164,7 @@ if __name__ == "__main__":
         else:
             test_result = save_path + '/test_result.csv'
             fd_test_result = open(test_result,'a')
-            fd_test_result.write('test on epoch '+str(args.keep)+'SNR'+str(args.SNR)+' dimension:'+str(args.dimension)+'\n')
+            fd_test_result.write('test on epoch '+str(args.keep)+'SNR'+str(args.SNR)+'\n')
             fd_test_result.write('test_mode,label30_acc,label21_acc\n')
             # clean test
             print('*'*30 + 'clean exp' + '*'*30)    
@@ -235,7 +174,7 @@ if __name__ == "__main__":
             for i in range(5):
                 print('*'*30 + 'Noisy '+ str(i+2) +' exp' + '*'*30)    
                 teX, teY = load_random_noisy_data(args.data_path,'TEST',args.mode,SNR=args.SNR)
-                teX = Dimension(teX,args.dimension)#teX = np.expand_dims(teX[:,:,:,1],axis=3)
+                #teX = np.expand_dims(teX[:,:,:,1],axis=3)
                 data = (teX, teY)
                 label30_acc, label21_acc = test(multi_model, data=data,args=args)
                 fd_test_result.write('noisy'+str(i)+','+str(label30_acc)+','+str(label21_acc)+'\n')
@@ -245,7 +184,3 @@ if __name__ == "__main__":
         raise ValueError('Wrong is_training value')#'could not find %c in %s' % (ch,str)) 
 # Code end
 # For not decreasing issue: https://github.com/XifengGuo/CapsNet-Keras/issues/48
-
-
-
-

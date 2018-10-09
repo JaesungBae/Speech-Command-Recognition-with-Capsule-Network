@@ -27,7 +27,7 @@ def args():
     parser.add_argument('-te','--test_with', default=None,choices=['clean','noisy'], type=str)
     parser.add_argument('-fte','--final_test_with', default=None,choices=['clean','noisy'], type=str)
     # Added
-    parser.add_argument('--dimension', default=3, choices=[0,1,2,3],type=int)
+    parser.add_argument('-dim','--dimension', default=3, choices=[0,1,2,3],type=int)
     parser.add_argument('-d','--decoder', default=None,choices=[0,1], type=int)
     parser.add_argument('--keep', default=None, type=int)
     #
