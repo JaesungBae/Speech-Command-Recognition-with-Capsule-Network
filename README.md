@@ -28,8 +28,6 @@ We use 'Google Speech Command Dataset'. You could refer to [blog](https://ai.goo
 
 - Download the dataset from above link and unzip it. (In our case we will unzip it in the folder named 'Google_Speech_Command')
 
-
-
 #### Data folder structure
 	feature_saved
 	|-- TEST
@@ -75,6 +73,12 @@ noise_wave_generate.m
 ```	
 4. You could aslo change 'SNR' in the code and generate noise audio files as you want.
 
+### Feature Generation
+Extract speech features from raw audio file and save them as .npy file. Please adjust '--noise_nmae' argument.
+'''
+cd core
+python feature_generation.py
+'''
 
 Reference
 ---
