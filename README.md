@@ -81,14 +81,20 @@ python feature_generation.py
 
 Training & Testing
 ---
+For training and testing go into 'CNN' or 'CapsNet' folder and run the code. You could change the mode with '--is_training' argument.
 ### Training
 ```
 cd CapsNet
 python main.py -m=CapsNet -ex='0320_digitvec4' -d=0 --kernel=19 --primary_channel=32  --primary_veclen=4 --digit_veclen=4 --is_training='TRAIN'  --batch_size=64
-python main.py -m=CapsNet -ex='0320_digitvec4' -d=0 --kernel=19 --primary_channel=32  --primary_veclen=4 --digit_veclen=4 --is_training='TEST' --batch_size=64 -tr='clean' -te='clean' --SNR=5 --keep=?
+
 ```
 
 ### Testing
+Note that you should set '--keep' argument to the number of epoch that you want to test.
+```
+cd CapsNet
+python main.py -m=CapsNet -ex='0320_digitvec4' -d=0 --kernel=19 --primary_channel=32  --primary_veclen=4 --digit_veclen=4 --is_training='TEST' --batch_size=64 -tr='clean' -te='clean' --SNR=5 --keep=?
+```
 
 Reference
 ---
