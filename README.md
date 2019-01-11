@@ -79,6 +79,17 @@ python feature_generation.py
 	    |   '-- [noise names]_SNR5
 	    '-- label
 
+Training & Testing
+---
+### Training
+```
+cd CapsNet
+python main.py -m=CapsNet -ex='0320_digitvec4' -d=0 --kernel=19 --primary_channel=32  --primary_veclen=4 --digit_veclen=4 --is_training='TRAIN'  --batch_size=64
+python main.py -m=CapsNet -ex='0320_digitvec4' -d=0 --kernel=19 --primary_channel=32  --primary_veclen=4 --digit_veclen=4 --is_training='TEST' --batch_size=64 -tr='clean' -te='clean' --SNR=5 --keep=?
+```
+
+### Testing
+
 Reference
 ---
 Preprocessing source code from https://github.com/zzw922cn/Automatic_Speech_Recognition.
