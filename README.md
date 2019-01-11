@@ -70,15 +70,16 @@ speech_commands_v0.01.tar
 3. Change 'data_path' in matlab code and run the matlab code. It will generate new folder and save the noise added audio files.
 ```	
 noise_wave_generate.m
-```	
+```
 4. You could aslo change 'SNR' in the code and generate noise audio files as you want.
 
 ### Feature Generation
 Extract speech features from raw audio file and save them as .npy file. Please adjust '--noise_nmae' argument.
-'''
+
+```
 cd core
 python feature_generation.py
-'''
+```
 
 Reference
 ---
