@@ -33,18 +33,17 @@ We use 'Google Speech Command Dataset'. You could refer to [blog](https://ai.goo
 	|-- TEST
 	|   |-- fbank
 	|   |   |-- clean
-	|   |   |-- [noise names]
 	|   |   '-- [noise names]_SNR5
 	|   '-- label
 	|-- TRAIN
 	|   |-- fbank
 	|   |   |-- clean
-	|   |   '-- [noise names]
+	|   |   '-- [noise names]_SNR5
 	|   '-- label
 	'-- VALID
 	    |-- fbank
 	    |   |-- clean
-	    |   '-- [noise names]
+	    |   '-- [noise names]_SNR5
 	    '-- label
 
 
@@ -74,12 +73,12 @@ noise_wave_generate.m
 4. You could aslo change 'SNR' in the code and generate noise audio files as you want.
 
 ### Feature Generation
-Extract speech features from raw audio file and save them as .npy file. Please adjust '--noise_nmae' argument.
-
+Extract speech features from raw audio file and save them as .npy file. Please adjust '--noise_name' argument.
 ```
 cd core
 python feature_generation.py
 ```
+
 
 Reference
 ---
@@ -92,4 +91,4 @@ Authors
 ---
 Jaesung Bae - Korea Advanced Institute of Science and Technology (KAIST)
 
-contact: bjs2279@gmail.com / bjsd3@kaist.ac.kr
+contact: bjs2279@gmail.com
