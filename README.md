@@ -86,7 +86,6 @@ For training and testing go into 'CNN' or 'CapsNet' folder and run the code. You
 ```
 cd CapsNet
 python main.py -m=CapsNet -ex='0320_digitvec4' -d=0 --kernel=19 --primary_channel=32  --primary_veclen=4 --digit_veclen=4 --is_training='TRAIN'  --batch_size=64
-
 ```
 
 ### Testing
