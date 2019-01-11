@@ -10,16 +10,18 @@ import time
 import os, sys
 sys.path.append('../')
 # User
-from core.data_utils import load_specific_noisy_data, load_random_noisy_data, DATA, Dimension
+from core.data_utils import load_specific_noisy_data, load_random_noisy_data, DATA, Dimension, compare_weight_similarity
 from core.args import parameter_print
-from core.analysis import Analysis
-from model import CNN, CNN_0320, CNN_0314, CNN_0320_326464
+#from core.analysis import Analysis
+from model import CNN, CNN_0320, CNN_0314, CNN_0320_326464, OnlyDense, wieght_similarity, ref_cnn
+import model
 # Keras
 from keras.utils import multi_gpu_model
 from keras import callbacks, layers, optimizers
 from keras import backend as K
 from keras.losses import categorical_crossentropy
-
+import scipy
+noise_list = ['doing_the_dishes_SNR5','dude_miaowing_SNR5','exercise_bike_SNR5','pink_noise_SNR5','running_tap_SNR5','white_noise_SNR5']
 def train(multi_model, data, save_path, args):
     trX, trY, vaX, vaY = data
     print(str(trX.shape),str(trY.shape),str(vaX.shape),str(vaY.shape))
@@ -34,7 +36,7 @@ def train(multi_model, data, save_path, args):
     #                           batch_size=args.batch_size, histogram_freq=args.debug)
     checkpoint = callbacks.ModelCheckpoint(save_path + '/weights-{epoch:03d}.h5py', monitor='val_acc',
                                            save_best_only=True, save_weights_only=True, verbose=1)
-    earlystop = callbacks.EarlyStopping(monitor='val_acc', min_delta=0, patience=20, verbose=1, mode='auto')
+    earlystop = callbacks.EarlyStopping(monitor='val_acc', min_delta=0, patience=20, verbose=0, mode='auto')
     #lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.learning_rate * (0.9 ** args.num_epoch))
     
 
@@ -43,13 +45,19 @@ def train(multi_model, data, save_path, args):
               #validation_split = 0.1,
               validation_data=[vaX,vaY], 
               shuffle = True,
-              callbacks=[log, checkpoint])
+              callbacks=[log, checkpoint, earlystop])
 
 def test(model, data, args):
+    start_time = time.time()
     teX,teY = data
     print('-'*30 + 'Begin: test with ' + '-'*30)
     y_pred = model.predict(teX,batch_size=args.batch_size)
-
+    #
+    if args.weight_similarity:
+        print(y_pred.shape)
+        Array1,Array2, Sim = compare_weight_similarity(teY,y_pred,label1=0,label2=24,label3=25,plot=False)
+        cprint(Sim,'blue')
+    #
     label30_acc = float(np.sum(np.argmax(y_pred, 1) == np.argmax(teY, 1)))/float(teY.shape[0])
     print('Test with 30 labels acc:', label30_acc )
     A = np.argmax(y_pred, 1)
@@ -66,6 +74,17 @@ def test(model, data, args):
     label21_acc =  float(np.sum(A == B))/float(teY.shape[0])
     print('Test with 20 labels acc:', label21_acc)
     print('-'*30 + 'End: test' + '-'*30)
+    cprint('Time: '+str(time.time()-start_time),'yellow')
+    # Check 10 label
+    sub_label = [0,1,2,3,5,6,7,9,10,12,13,17,19,20,21,23,24,25,27,29]
+    for i in range(A.shape[0]):
+        if A[i] in sub_label:
+            A[i] = 0
+        if B[i] in sub_label:
+            B[i] = 0
+    label10_acc =  float(np.sum(A == B))/float(teY.shape[0])
+    cprint('Test with 10 labels acc:' + str(label10_acc),'red')
+    '''
     ##
     ##Confusion Matrix Generate
     ##
@@ -74,6 +93,7 @@ def test(model, data, args):
     #Anal.RawPredictMatrix_Generate(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
     Anal.MatrixSave(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
     Anal.StopCode()
+    '''
     return label30_acc, label21_acc
     '''
     def text_to_label(text):
@@ -121,35 +141,60 @@ if __name__ == "__main__":
 
     # Data Load
     data = DATA(args.is_training, args.train_with, args.test_with,
-                                args.data_path, mode=args.mode, dimension=args.dimension) #[sample,99,40,3]
+                                args.data_path, mode=args.mode, feature_len=args.feature_len,dimension=args.dimension) #[sample,99,40,3]
     X = data[0]
     Y = data[1]
     # Define Model
     cprint(str(len(np.unique(np.argmax(Y, 1)))), 'red')
     with tf.device('/cpu:0'):
+        cprint('+'*10,'yellow')
+        print(args.ex_name)
         if args.ex_name == '0314':
+            cprint('+'*10,'yellow')
             model = CNN_0314(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))),)
         elif args.ex_name == '0320':
+            cprint('+'*10,'yellow')
             model = CNN_0320(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))),)
-        elif args.ex_name == '0320_326464' or 'dim0_0929':
+        elif args.ex_name == '0320_326464' or args.ex_name =='dim0_0929':
+            cprint('+'*10,'yellow')
             model = CNN_0320_326464(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))),)
+        elif 'onlydense' in args.ex_name.lower():
+        	cprint('Only Dense Experience','yellow')
+        	model = OnlyDense(input_shape=X.shape[1:],n_class=len(np.unique(np.argmax(Y, 1))),DenseChannel=args.DenseChannel)
+        elif 'ref_cnn' in args.ex_name.lower():
+            model = ref_cnn(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))), model_size_info=args.model_size_info)
+        elif 'ref_2014icassp_dnn' in args.ex_name.lower():
+        	model = model.ref_2014icassp_dnn(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))), model_size_info=args.model_size_info)
+        elif 'ref_2015is_cnn' in args.ex_name.lower():
+            model = model.ref_2015IS_cnn(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))), model_size_info=args.model_size_info)
+        elif 'ref_rnn' in args.ex_name.lower():
+            model = model.ref_rnn(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))), model_size_info=args.model_size_info)
+        elif 'ref_crnn' in args.ex_name.lower():
+        	model = model.ref_crnn(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))), model_size_info=args.model_size_info)
         else:
+            cprint('go to else loop','red')
             model = CNN(input_shape=X.shape[1:],
                 n_class=len(np.unique(np.argmax(Y, 1))),
                 CNNkernel=args.CNNkernel,
                 CNNChannel=args.CNNChannel,
                 DenseChannel=args.DenseChannel,
                 )
+    if args.weight_similarity: model = wieght_similarity(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))))
     model.summary()
     multi_model = multi_gpu_model(model, gpus=args.gpus)
 
     # Save path and load model
     if not os.path.exists(save_path):
         os.mkdir(save_path)
-    if args.keep:  # init the model weights with provided one
+    if args.keep and not args.weight_similarity:  # init the model weights with provided one
         cprint('load weight from:' + save_path + '/weights-%03d.h5py'%args.keep, 'yellow')
         multi_model.load_weights(save_path + '/weights-%03d.h5py'% args.keep)
         #model.load(save_path)
+    elif args.keep and args.weight_similarity:
+        cprint('weight_similarity','yellow')
+        cprint('load weight from:' + save_path + '/weights-%03d.h5py'%args.keep, 'yellow')
+        multi_model.load_weights(save_path + '/weights-%03d.h5py'% args.keep,by_name=True)
+
     else:
         cprint('save weight to: ' + save_path, 'yellow')
 
@@ -169,12 +214,16 @@ if __name__ == "__main__":
             # clean test
             print('*'*30 + 'clean exp' + '*'*30)    
             label30_acc, label21_acc = test(multi_model, data=data,args=args)
+            label30_acc, label21_acc = test(multi_model, data=data,args=args)
             fd_test_result.write('clean,'+str(label30_acc)+','+str(label21_acc)+'\n')
             fd_test_result.flush()
-            for i in range(5):
+            for i in range(6):
                 print('*'*30 + 'Noisy '+ str(i+2) +' exp' + '*'*30)    
-                teX, teY = load_random_noisy_data(args.data_path,'TEST',args.mode,SNR=args.SNR)
+                if args.test_by=='noise':teX, teY = load_specific_noisy_data(args.data_path, 'TEST', args.mode, args.feature_len, noise_list[i]);cprint(noise_list[i],'red')
+                elif args.test_by=='echo':teX, teY = load_specific_noisy_data(args.data_path, 'TEST',  args.mode,args.feature_len, 'echo');cprint('echo','red')
+                else:teX, teY = load_random_noisy_data(args.data_path,'TEST',args.mode, args.feature_len, SNR=args.SNR)              
                 #teX = np.expand_dims(teX[:,:,:,1],axis=3)
+                teX = Dimension(teX,args.dimension)#teX = np.expand_dims(teX[:,:,:,1],axis=3)
                 data = (teX, teY)
                 label30_acc, label21_acc = test(multi_model, data=data,args=args)
                 fd_test_result.write('noisy'+str(i)+','+str(label30_acc)+','+str(label21_acc)+'\n')

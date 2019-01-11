@@ -9,17 +9,19 @@ from termcolor import colored, cprint
 import time, os, sys
 sys.path.append('../')
 # User
-from core.data_utils import load_specific_noisy_data, load_random_noisy_data, DATA, Dimension
+from core.data_utils import load_specific_noisy_data, load_random_noisy_data, DATA, Dimension, compare_weight_similarity
 from core.args import parameter_print
-from capsulenet import CapsNet_WithDecoder, margin_loss, CapsNet_NoDecoder
+from core.analysis import Analysis, TSNE_
+from capsulenet import CapsNet_WithDecoder, margin_loss, CapsNet_NoDecoder, wieght_similarity
 # keras
 from keras.utils import multi_gpu_model
 from keras import callbacks, layers, optimizers
 from keras import backend as K
+import scipy
 
 
 
-
+noise_list = ['doing_the_dishes_SNR5','dude_miaowing_SNR5','exercise_bike_SNR5','pink_noise_SNR5','running_tap_SNR5','white_noise_SNR5']
 def train(multi_model, data, save_path, args):
     trX, trY, vaX, vaY = data
     print(str(trX.shape),str(trY.shape),str(vaX.shape),str(vaY.shape))
@@ -73,12 +75,15 @@ def train_NoDecoder(multi_model, data, save_path, args):
 
 
 def test(model, data, args):
+    start_time = time.time()
     teX,teY = data
     print('-'*30 + 'Begin: test with ' + '-'*30)
     if args.decoder == 1:
         y_pred, x_recon = model.predict([teX,teY],batch_size=args.batch_size)
     else:
         y_pred= model.predict(teX,batch_size=args.batch_size)
+    Array1,Array2, Sim = compare_weight_similarity(teY,y_pred,label1=0,label2=24,label3=25,plot=False)
+    cprint(Sim,'blue')
 #    print('TSNE start...')
 #    TSNE_(y_pred,teY,NumLabel=21)
 #    print("TSNE done... ")
@@ -98,7 +103,19 @@ def test(model, data, args):
     label21_acc =  float(np.sum(A == B))/float(teY.shape[0])
     print('Test with 20 labels acc:', label21_acc)
     print('-'*30 + 'End: test' + '-'*30)
+    cprint('Time: '+str(time.time()-start_time),'yellow')
+    '''
     ##
+    ##Confusion Matrix Generate
+    ##
+    Anal = Analysis(args)
+    #Anal.ConfusionMatrix_Generate(y_pred30=np.argmax(y_pred, 1), teY30=np.argmax(teY, 1), y_pred20=A,teY20=B)
+    #Anal.RawPredictMatrix_Generate(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
+    #Anal.MatrixSave(np.reshape(np.argmax(y_pred, 1), (-1,1)), teY)
+    _ = Anal.Capsule_CNN_Compare(23,24)
+    _ = Anal.Capsule_CNN_Compare(24,23)
+    Anal.StopCode()
+    '''
     return label30_acc, label21_acc
 
 
@@ -148,7 +165,17 @@ if __name__ == "__main__":
 
     data = DATA(args.is_training, args.train_with, args.test_with,
                                 args.data_path, mode=args.mode,dimension=args.dimension) #[sample,99,40,3]
-    
+    '''
+    ##########################################
+    # Analysis
+    ##########################
+    Anal = Analysis(args)
+    DataNum1 = Anal.Capsule_CNN_Compare(23,24)
+    DataNum2 = Anal.Capsule_CNN_Compare(24,23)
+    Anal.Capsule_CNN_spectrogram(DataNum1,23,24,X=data[0])
+    Anal.Capsule_CNN_spectrogram(DataNum1,24,23,X=data[0])
+    Anal.StopCode()
+    '''
     X = data[0]
     Y = data[1]
     # Define Model
@@ -165,7 +192,8 @@ if __name__ == "__main__":
                                                           routings=args.routings,
                                                           decoderParm=(args.NumDecoderLayer,
                                                             [args.DecoderLayer1,args.DecoderLayer2,args.DecoderLayer3]
-                                                            ))
+                                                            ),
+                                                          model_size_info=args.model_size_info)
         else:
             model = CapsNet_NoDecoder(input_shape=X.shape[1:],
                                     n_class=len(np.unique(np.argmax(Y, 1))),
@@ -174,17 +202,23 @@ if __name__ == "__main__":
                                     primary_veclen=args.primary_veclen,
                                     digit_veclen = args.digit_veclen,
                                     dropout = args.dropout,
-                                    routings=args.routings)
+                                    routings=args.routings,
+                                    model_size_info=args.model_size_info)
+    if args.weight_similarity: model = wieght_similarity(input_shape=X.shape[1:], n_class=len(np.unique(np.argmax(Y, 1))),kernel=args.kernel)
     model.summary()
     multi_model = multi_gpu_model(model, gpus=args.gpus)
 
     # Save path and load model
     if not os.path.exists(save_path):
         os.mkdir(save_path)
-    if args.keep:  # init the model weights with provided one
+    if args.keep and not args.weight_similarity:  # init the model weights with provided one
         cprint('load weight from:' + save_path + '/weights-%03d.h5py'%args.keep, 'yellow')
         multi_model.load_weights(save_path + '/weights-%03d.h5py'% args.keep)
         #model.load(save_path)
+    elif args.keep and args.weight_similarity:
+        cprint('weight_similarity','yellow')
+        cprint('load weight from:' + save_path + '/weights-%03d.h5py'%args.keep, 'yellow')
+        multi_model.load_weights(save_path + '/weights-%03d.h5py'% args.keep,by_name=True)
     else:
         if args.ex_name == 'best':
             cprint('load weight from:' + '/home/jsbae/STT2/KWS/save/CapsNet/0320_digitvec4_clean_clean/weights-012.h5py', 'yellow')
@@ -213,9 +247,11 @@ if __name__ == "__main__":
             label30_acc, label21_acc = test(multi_model, data=data,args=args)
             fd_test_result.write('clean,'+str(label30_acc)+','+str(label21_acc)+'\n')
             fd_test_result.flush()
-            for i in range(5):
+            for i in range(6):
                 print('*'*30 + 'Noisy '+ str(i+2) +' exp' + '*'*30)    
-                teX, teY = load_random_noisy_data(args.data_path,'TEST',args.mode,SNR=args.SNR)
+                if args.test_by=='noise':teX, teY = load_specific_noisy_data(args.data_path, 'TEST', args.mode,noise_list[i]);cprint(noise_list[i],'red')
+                elif args.test_by=='echo':teX, teY = load_specific_noisy_data(args.data_path, 'TEST', args.mode, 'echo');cprint('echo','red')
+                else: teX, teY = load_random_noisy_data(args.data_path,'TEST',args.mode,SNR=args.SNR)
                 teX = Dimension(teX,args.dimension)#teX = np.expand_dims(teX[:,:,:,1],axis=3)
                 data = (teX, teY)
                 label30_acc, label21_acc = test(multi_model, data=data,args=args)

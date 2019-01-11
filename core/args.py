@@ -9,11 +9,14 @@ def args():
         choices=['clean','exercise_bike','pink_noise','doing_the_dishes','running_tap','dude_miaowing','white_noise'],
         type=str)
     parser.add_argument('--is_training', default='TRAIN',choices=['TRAIN','TEST'], type=str)
-    #Experiment
+    parser.add_argument('--test_by', default=None,choices=['noise','echo'], type=str)
+    parser.add_argument('-ws','--weight_similarity', default=None, type=bool)
+
+    #experiment
     #Path
     parser.add_argument('--data_path', default= '/DATA/jsbae/KWS_feature_saved', type=str)
     #parser.add_argument('--data_path', default= '/home/jsbae/STT/From_server_ASr/KWS_feature_saved', type=str)
-    parser.add_argument('--project_path', default='/home/jsbae/STT2/SCR_INTERSPEECH2018', type=str)
+    parser.add_argument('--project_path', default='/DATA/jsbae/STT2/SCR_INTERSPEECH2018', type=str)
     # Parameters
     parser.add_argument('-lr','--learning_rate', default=0.001, type=float)
     parser.add_argument('--num_epoch', default=100, type=int)
@@ -23,8 +26,8 @@ def args():
     # Should type
     parser.add_argument('-m','--model', default=None, type=str)
     parser.add_argument('-ex','--ex_name', default=None, type=str)
-    parser.add_argument('-tr','--train_with', default=None,choices=['clean','noisy'], type=str)
-    parser.add_argument('-te','--test_with', default=None,choices=['clean','noisy'], type=str)
+    parser.add_argument('-tr','--train_with', default='clean',choices=['clean','noisy'], type=str)
+    parser.add_argument('-te','--test_with', default='clean',choices=['clean','noisy'], type=str)
     parser.add_argument('-fte','--final_test_with', default=None,choices=['clean','noisy'], type=str)
     # Added
     parser.add_argument('-dim','--dimension', default=3, choices=[0,1,2,3],type=int)
@@ -40,6 +43,12 @@ def args():
     parser.add_argument('-CNNk','--CNNkernel', default=5, type=int, help="CNN 3 layer's kernel size.")
     parser.add_argument('-CNNC','--CNNChannel', default=32, type=int, help="CNN 3 layer's channel size.")
     parser.add_argument('-Dense','--DenseChannel', default=128, type=int, help="Dense 2 layer's channel size.")
+    parser.add_argument(
+      '--model_size_info',
+      type=int,
+      nargs="+",
+      default=[128,128,128],
+      help='Model dimensions - different for various models')
     # Capsule Experiment
     parser.add_argument('--kernel', default=19, type=int,
                         help="Convlution and Primary cpasule layer's kernel size.")

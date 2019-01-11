@@ -113,7 +113,7 @@ def SNR(sig,noise=None):
     return SNR
 
 def feature_generation(audio_path, save_path, win_length=0.02, win_step=0.01, mode='fbank', 
-        feature_len=40, noise_name='clean', noiseSNR=0.5,csv=None):
+		feature_len=40, noise_name='clean', noiseSNR=0.5,csv=None):
     '''
     <input>
     audio_path = '/sda3/DATA/jsbae/Google_Speech_Command'
@@ -137,33 +137,14 @@ def feature_generation(audio_path, save_path, win_length=0.02, win_step=0.01, mo
     # end.
     #
     # make dirs.
-    if noise_name in ['clean','echo']:
-        dirs = [f for f in os.listdir(audio_path) if os.path.isdir(os.path.join(audio_path, f))] #label save at dirs
-        dirs.sort()
-        if '_background_noise_' in dirs:
-            dirs.remove('_background_noise_')
-    else:
-        audio_path = os.path.join(audio_path,noise_name)
-        dirs = [f for f in os.listdir(audio_path) if os.path.isdir(os.path.join(audio_path, f))] #label save at dirs
-        '''
-        dirs=[]
-        dirs1 = [f for f in os.listdir(audio_path) if os.path.isdir(os.path.join(audio_path, f))] #label save at dirs
-        dirs1.sort()
-        for dirs1_ in dirs1:
-            dirs1_path = os.path.join(audio_path,dirs1_)
-            dirs2 = [f for f in os.listdir(dirs1_path) if os.path.isdir(os.path.join(dirs1_path,f))]
-            for dirs2_ in dirs2:
-                dirs.append(dirs1_ + '/' + dirs2_)
-        '''
+    dirs = [f for f in os.listdir(audio_path) if os.path.isdir(os.path.join(audio_path, f))] #label save at dirs
+    dirs.sort()
+    dirs.remove('_background_noise_')
     print(dirs)
     print('Number of labels: ' + str(len(dirs)))
     # end.
     #
     # Make directory if not exits.
-    if noise_name in ['clean','echo']:
-        pass
-    else:
-        noise_name = noise_name + '_SNR' + str(noiseSNR)# change noise_name with SNR
     def make_dir(path):
         if not os.path.exists(path):
             os.makedirs(path)
@@ -179,13 +160,13 @@ def feature_generation(audio_path, save_path, win_length=0.02, win_step=0.01, mo
     total_SNR = 0
     count = 0
     # Make feature and label files.
+    bgmfile = os.path.join(audio_path,'_background_noise_',noise_name+'.wav')
     for dirname in dirs:
         full_dirname = os.path.join(audio_path,dirname)
         cprint('Processing in '+full_dirname,'yellow')
         teCount, vaCount, trCount = 0,0,0
         for filename in os.listdir(full_dirname):
             full_filename = os.path.join(full_dirname,filename)
-            #print full_filename
             filenameNoSuffix =  os.path.splitext(full_filename)[0]
 #            print filenameNoSuffix: output: /sda3/DATA/jsbae/Google_Speech_Command/nine/24b82192_nohash_2
             ext = os.path.splitext(full_filename)[-1]
@@ -195,11 +176,12 @@ def feature_generation(audio_path, save_path, win_length=0.02, win_step=0.01, mo
                 rate = None
                 sig = None
                 
-                
-                #(rate,sig)= wav.read(full_filename)
-                '''
+                if noise_name == 'clean':
+                    (rate,sig)= wav.read(full_filename)
+
                 else:
                     (c_rate,c_sig)= wav.read(full_filename)
+                    print max(c_sig), min(c_sig)
                     (n_rate,n_sig)= wav.read(bgmfile)
                     assert c_rate == n_rate ==  16000
                     rate = c_rate
@@ -214,9 +196,9 @@ def feature_generation(audio_path, save_path, win_length=0.02, win_step=0.01, mo
                     count += 1
                     csv.write(str(count)+','+str(snr_)+'\n')
                     csv.flush()
-                '''
 
-                
+
+                '''
                 try:
                     (rate,sig)= wav.read(full_filename)
                 except ValueError as e:
@@ -225,41 +207,38 @@ def feature_generation(audio_path, save_path, win_length=0.02, win_step=0.01, mo
                         nframes = sf.nframes
                         sig = sf.read_frames(nframes)
                         rate = sf.samplerate
-                
+                '''
                 feat = calcfeat_delta_delta(sig,rate,win_length=win_length,win_step=win_step,mode=mode,feature_len=feature_len)
                 feat = preprocessing.scale(feat)
                 feat = np.transpose(feat) 
-                #print(np.max(feat),np.min(feat),feat.shape) #(120, almost 99)
+                #print(feat.shape) #(120, almost 99)
                 label = text_to_label(dirname)
                 #print label
                 if label == 30: raise ValueError('wrong') 
                 # Save to TEST, VALID, TRAIN folder.
-                print(os.path.join(dirname,filename))
                 if os.path.join(dirname,filename) in testing_list:
-
                     featureFilename = os.path.join(save_path,'TEST',mode, noise_name, dirname+'_'+filenameNoSuffix.split('/')[-1]+'.npy')
                     labelFilename = os.path.join(save_path,'TEST','label', dirname+'_'+filenameNoSuffix.split('/')[-1]+'.npy')
-                    #assert label == np.load(labelFilename)
-                    print featureFilename
-                    np.save(featureFilename, feat)
-                    np.save(labelFilename, label)
+                    #np.save(featureFilename, feat)
+                    #np.save(labelFilename, label)
                     teCount +=1
-                    
+
                 elif os.path.join(dirname,filename) in validation_list:
                     featureFilename = os.path.join(save_path,'VALID',mode, noise_name, dirname+'_'+filenameNoSuffix.split('/')[-1]+'.npy')
                     labelFilename = os.path.join(save_path,'VALID','label', dirname+'_'+filenameNoSuffix.split('/')[-1]+'.npy')
-                    np.save(featureFilename, feat)
-                    np.save(labelFilename, label)
+                    #np.save(featureFilename, feat)
+                    #np.save(labelFilename, label)
                     vaCount += 1
-                    #raise ValueError
                 else:
                     featureFilename = os.path.join(save_path,'TRAIN',mode, noise_name, dirname+'_'+filenameNoSuffix.split('/')[-1]+'.npy')
                     labelFilename = os.path.join(save_path,'TRAIN','label', dirname+'_'+filenameNoSuffix.split('/')[-1]+'.npy')
-                    np.save(featureFilename, feat)
-                    np.save(labelFilename, label)
+                    #np.save(featureFilename, feat)
+                    #np.save(labelFilename, label)
                     trCount +=1
-                    #raise ValueError
         print trCount, vaCount, teCount
+    print 'count: ', count
+    print 'total_SNR', (total_SNR/count)
+    return (total_SNR/count)
     # end.
     # function end.
 
@@ -269,16 +248,12 @@ if __name__ == "__main__":
     parser.add_argument('--win_length', default=0.02, type=float)
     parser.add_argument('--win_step', default=0.01, type=float)
     parser.add_argument('--mode', default='fbank',choices=['mfcc','fbank'], type=str)
-    parser.add_argument('--save_path', default='/DATA/jsbae/KWS_feature_saved',type=str)
     parser.add_argument('--feature_len', default=40, type=int)
     parser.add_argument('--noise_name', default='clean', 
-        choices=['clean','echo','exercise_bike','pink_noise','doing_the_dishes','running_tap','dude_miaowing','white_noise','all_noise'],
+        choices=['clean','exercise_bike','pink_noise','doing_the_dishes','running_tap','dude_miaowing','white_noise'],
         type=str)
-    parser.add_argument('--noiseSNR', default=None, choices=[5,15], type=int)
+    parser.add_argument('--noiseSNR', default=0.5, type=float)
 
-    # Echo generation command
-    # python feature_generation.py --noise_name='echo'
-    # python feature_generation.py --mode=mfcc --feature_len=13 --noise_name=all_noise --noiseSNR=5
     # Parameters
     args = parser.parse_args()
     win_length = args.win_length
@@ -289,38 +264,30 @@ if __name__ == "__main__":
     noiseSNR = args.noiseSNR
 
     audio_path = '/DATA/jsbae/Google_Speech_Command'
-    save_path = args.save_path
+    save_path = '/DATA/jsbae/KWS_feature_saved'
 
     ############### FOR FEATURE EXTRACTION ###############
     # Path and function
-    
-    if noise_name =='clean':
-        cprint('noise name: '+noise_name,'magenta')
-        cprint('save_path: '+save_path+'\nmode: '+mode,'yellow')
-        feature_generation(audio_path=audio_path, save_path=save_path,    
-            win_length=win_length, win_step=win_step,mode=mode,feature_len=feature_len,
-            noise_name=noise_name, noiseSNR=noiseSNR)
-    elif noise_name == 'echo':
-        cprint('noise name: '+noise_name,'magenta')
-        cprint('save_path: '+save_path+'\nmode: '+mode,'yellow')
-        audio_path += '_echo'
-        feature_generation(audio_path=audio_path, save_path=save_path,
-            win_length=win_length, win_step=win_step,mode=mode,feature_len=feature_len,
-            noise_name=noise_name, noiseSNR=None)
-    else:
+    '''
+    cprint('noise name: '+noise_name,'magenta')
+    cprint('save_path: '+save_path+'\nmode: '+mode,'yellow')
+    feature_generation(audio_path=audio_path, save_path=save_path,    
+        win_length=win_length, win_step=win_step,mode=mode,feature_len=feature_len,
+        noise_name=noise_name, noiseSNR=noiseSNR)
+	'''
+
     ########### For Noise SNR test ###########
-        audio_path = audio_path + '_SNR' + str(args.noiseSNR)
-        noise = ['exercise_bike','pink_noise','doing_the_dishes','running_tap','dude_miaowing','white_noise']
-        snr_memory = []
-        for i in range(len(noise)):
-            snr_csv = './'+str(noise[i])+'.csv'
-            fd_snr = open(snr_csv ,'w')
-            fd_snr.write('count,snr\n')
-            print(noise[i])
-            total_snr = feature_generation(audio_path=audio_path, save_path=save_path,    
-                win_length=win_length, win_step=win_step,mode=mode,feature_len=feature_len,
-                noise_name=noise[i], noiseSNR=noiseSNR,csv=fd_snr)
-            snr_memory.append(total_snr)
-            fd_snr.close()
-        for i in range(len(noise)):
-            print('The SNR for the noise "{}" is: {}'.format(noise[i],snr_memory[i]))
+    noise = ['exercise_bike','pink_noise','doing_the_dishes','running_tap','dude_miaowing','white_noise']
+    snr_memory = []
+    for i in range(len(noise)):
+    	snr_csv = './'+str(noise[i])+'.csv'
+    	fd_snr = open(snr_csv ,'w')
+    	fd_snr.write('count,snr\n')
+    	print(noise[i])
+        total_snr = feature_generation(audio_path=audio_path, save_path=save_path,    
+            win_length=win_length, win_step=win_step,mode=mode,feature_len=feature_len,
+            noise_name=noise[i], noiseSNR=noiseSNR,csv=fd_snr)
+        snr_memory.append(total_snr)
+        fd_snr.close()
+    for i in range(len(noise)):
+        print('The SNR for the noise "{}" is: {}'.format(noise[i],snr_memory[i]))

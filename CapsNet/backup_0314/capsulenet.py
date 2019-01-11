@@ -21,30 +21,15 @@ import tensorflow as tf
 from keras import layers, models, optimizers
 from keras import backend as K
 from keras.utils import to_categorical
-from keras.models import Sequential
-from keras.layers import Conv2D 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 #from utils import combine_images
-#from PIL import Image
+from PIL import Image
 from capsulelayers import CapsuleLayer, PrimaryCap, Length, Mask
 
 K.set_image_data_format('channels_last')
 
-def wieght_similarity(input_shape, n_class, kernel,):
-    if kernel > 19:
-        conv_padding='same'
-        print('kernel size big, padding to same')
-    else:
-        conv_padding='valid'
 
-    x = layers.Input(shape=input_shape)
-
-    # Layer 1: Just a conventional Conv2D layer
-    out = layers.Conv2D(filters=256, kernel_size=kernel, strides=1, padding=conv_padding, activation='relu', name='conv1')(x)
-    model = models.Model(x, out)
-    return model
-    
-def CapsNet_WithDecoder(input_shape, n_class,  kernel, primary_channel, primary_veclen, digit_veclen, dropout, routings,decoderParm):
+def CapsNet(input_shape, n_class,  kernel, primary_channel, routings):
     """
     A Capsule Network on MNIST.
     :param input_shape: data shape, 3d, [width, height, channels]
@@ -53,22 +38,16 @@ def CapsNet_WithDecoder(input_shape, n_class,  kernel, primary_channel, primary_
     :return: Two Keras Models, the first one used for training, and the second one for evaluation.
             `eval_model` can also be used for training.
     """
-    if kernel > 19:
-        conv_padding='same'
-        print('kernel size big, padding to same')
-    else:
-        conv_padding='valid'
-
     x = layers.Input(shape=input_shape)
 
     # Layer 1: Just a conventional Conv2D layer
-    conv1 = layers.Conv2D(filters=256, kernel_size=kernel, strides=1, padding=conv_padding, activation='relu', name='conv1')(x)
+    conv1 = layers.Conv2D(filters=256, kernel_size=kernel, strides=1, padding='valid', activation='relu', name='conv1')(x)
 
     # Layer 2: Conv2D layer with `squash` activation, then reshape to [None, num_capsule, dim_capsule]
-    primarycaps = PrimaryCap(conv1, dim_capsule=primary_veclen, n_channels=primary_channel, kernel_size=kernel, strides=2, padding='valid')
+    primarycaps = PrimaryCap(conv1, dim_capsule=8, n_channels=primary_channel, kernel_size=kernel, strides=2, padding='valid')
 
     # Layer 3: Capsule layer. Routing algorithm works here.
-    digitcaps = CapsuleLayer(num_capsule=n_class, dim_capsule=digit_veclen, routings=routings,
+    digitcaps = CapsuleLayer(num_capsule=n_class, dim_capsule=16, routings=routings,
                              name='digitcaps')(primarycaps)
 
     # Layer 4: This is an auxiliary layer to replace each capsule with its length. Just to match the true label's shape.
@@ -81,11 +60,9 @@ def CapsNet_WithDecoder(input_shape, n_class,  kernel, primary_channel, primary_
     masked = Mask()(digitcaps)  # Mask using the capsule with maximal length. For prediction
 
     # Shared Decoder model in training and prediction
-    NumDecoderLayer, DecoderLayerUnit = decoderParm
     decoder = models.Sequential(name='decoder')
-    decoder.add(layers.Dense(DecoderLayerUnit[0], activation='relu', input_dim=digit_veclen*n_class))#16*n_class))
-    for i in range(NumDecoderLayer-2):
-        decoder.add(layers.Dense(DecoderLayerUnit[i+1], activation='relu'))
+    decoder.add(layers.Dense(512, activation='relu', input_dim=16*n_class))
+    decoder.add(layers.Dense(1024, activation='relu'))
     decoder.add(layers.Dense(np.prod(input_shape), activation='sigmoid'))
     decoder.add(layers.Reshape(target_shape=input_shape, name='out_recon'))
 
@@ -94,13 +71,13 @@ def CapsNet_WithDecoder(input_shape, n_class,  kernel, primary_channel, primary_
     eval_model = models.Model(x, [out_caps, decoder(masked)])
 
     # manipulate model
-    noise = layers.Input(shape=(n_class, digit_veclen))
+    noise = layers.Input(shape=(n_class, 16))
     noised_digitcaps = layers.Add()([digitcaps, noise])
     masked_noised_y = Mask()([noised_digitcaps, y])
     manipulate_model = models.Model([x, y, noise], decoder(masked_noised_y))
     return train_model, eval_model, manipulate_model
 
-def CapsNet_NoDecoder(input_shape, n_class, kernel, primary_channel, primary_veclen,digit_veclen, dropout, routings):
+def CapsNet_NoDecoder(input_shape, n_class, kernel, primary_channel, routings):
     """
     A Capsule Network on MNIST.
     :param input_shape: data shape, 3d, [width, height, channels]
@@ -109,23 +86,16 @@ def CapsNet_NoDecoder(input_shape, n_class, kernel, primary_channel, primary_vec
     :return: Two Keras Models, the first one used for training, and the second one for evaluation.
             `eval_model` can also be used for training.
     """
-    if kernel > 19:
-        conv_padding='same'
-        print('kernel size big, padding to same')
-    else:
-        conv_padding='valid'
-
     x = layers.Input(shape=input_shape)
 
     # Layer 1: Just a conventional Conv2D layer
-    conv1 = layers.Conv2D(filters=256, kernel_size=kernel, strides=1, padding=conv_padding, activation='relu', name='conv1')(x)
-    if dropout != 0:
-        conv1 = layers.Dropout(dropout)(conv1)
+    conv1 = layers.Conv2D(filters=256, kernel_size=kernel, strides=1, padding='valid', activation='relu', name='conv1')(x)
+
     # Layer 2: Conv2D layer with `squash` activation, then reshape to [None, num_capsule, dim_capsule]
-    primarycaps = PrimaryCap(conv1, dim_capsule=primary_veclen, n_channels=primary_channel, kernel_size=kernel, strides=2, padding='valid')
+    primarycaps = PrimaryCap(conv1, dim_capsule=8, n_channels=primary_channel, kernel_size=kernel, strides=2, padding='valid')
 
     # Layer 3: Capsule layer. Routing algorithm works here.
-    digitcaps = CapsuleLayer(num_capsule=n_class, dim_capsule=digit_veclen, routings=routings,
+    digitcaps = CapsuleLayer(num_capsule=n_class, dim_capsule=16, routings=routings,
                              name='digitcaps')(primarycaps)
 
     # Layer 4: This is an auxiliary layer to replace each capsule with its length. Just to match the true label's shape.
