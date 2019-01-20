@@ -1,4 +1,4 @@
-End-to-End Speech Command Recognition with Capsule Network
+Keyword Recognition with Capsule Network & Various NN in Google Speech Command Dataset
 ==========================
 
 INTERSPEECH 2018 paper: [link](https://www.isca-speech.org/archive/Interspeech_2018/pdfs/1888.pdf)
