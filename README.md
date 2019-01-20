@@ -122,7 +122,6 @@ KWS models based on various kinds of Neural Networks(NNs) are also provided in C
 	Contain 'ref_rnn' in ex_name to use LSTM model. For example 
 	```
 	python main.py --model='CNN' -ex_name=ref_rnn_lstm --model_size_info 64 32 0 --is_training='TRAIN'
-
 	```
 
 4. Convolutional Recurrent Neural Network(CRNN) base KWS model from
@@ -131,7 +130,6 @@ KWS models based on various kinds of Neural Networks(NNs) are also provided in C
 	Contain 'ref_crnn' in ex_name to use DNN model. For example 
 	```
 	python main.py --model='CNN' --ex_name=ref_crnn --model_size_info 32 20 5 8 2 2 32 1 64 --is_training='TRAIN'
-
 	```
 	
 Reference
