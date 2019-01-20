@@ -127,7 +127,7 @@ KWS models based on various kinds of Neural Networks(NNs) are also provided in C
 4. Convolutional Recurrent Neural Network(CRNN) base KWS model from
     - S. O. Arik, M. Kliegl, R. Child, J. Hestness, A. Gibiansky, C. Fougner, R. Prenger, and A. Coates, “Convolutional recurrent neural networks for small-footprint keyword spotting,” *arXiv preprint arXiv:1703.05390*, 2017.
 
-	Contain 'ref_crnn' in ex_name to use DNN model. For example 
+	Contain 'ref_crnn' in ex_name to use CRNN model. For example 
 	```
 	python main.py --model='CNN' --ex_name=ref_crnn --model_size_info 32 20 5 8 2 2 32 1 64 --is_training='TRAIN'
 	```
