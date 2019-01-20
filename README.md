@@ -5,7 +5,7 @@ INTERSPEECH 2018 paper: [link](https://www.isca-speech.org/archive/Interspeech_2
 
 We apply the capsule network to capture the spatial relationship and pose information of speech spectrogram features in both frequency and time axes, and show that our proposed end-to-end SR system with capsule networks on one-second speech commands dataset achieves better results on both clean and noise-added test than baseline CNN models.
 
-* **20 JAN:** Other baseline Keyword Spotting(KWS) models are also provided in CNN code.
+* **20 JAN 2019:** Other baseline Keyword Spotting(KWS) models are also provided in CNN code.
 
 Getting Started
 ---
