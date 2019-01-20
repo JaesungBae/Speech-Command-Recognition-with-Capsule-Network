@@ -103,20 +103,37 @@ KWS models based on various kinds of Neural Networks(NNs) are also provided in C
 1. Deep Neural Network(DNN) base KWS model from 
     - G. Chen, C. Parada, and G. Heigold, “Small-footprint keyword spotting using deep neural networks.” in *ICASSP*, vol. 14. Citeseer, 2014, pp. 4087–4091.
     
-	Contain 'ref_2014icassp_dnn' to use dnn model. For example 
+	Contain 'ref_2014icassp_dnn' in ex_name to use DNN model. For example 
 	```
-	python main.py --model='CNN' --ex_name='ref_2014icassp_dnn128' --is_training='TRAIN' --model_size_info 128 128 128
+	python main.py --model='CNN' --ex_name='ref_2014icassp_dnn512' --is_training='TRAIN' --model_size_info 512 512 512
 	```
 	
 2. CNN base KWS model from
     - T. N. Sainath and C. Parada, “Convolutional neural networks for small-footprint keyword spotting,” in *Sixteenth Annual Conference of the International Speech Communication Association*, 2015.
 
+	Contain 'ref_2015is_cnn' in ex_name to use CNN model. For example 
+	```
+	python main.py --model='CNN' --ex_name='ref_2015is_cnn' --is_training='TRAIN' --model_size_info 21 8 94 1 1 2 3 6 4 94 1 1 1 1 32
+	```
+	
 3. Long Short-Term Memory(LSTM) base KWS model form
     - M. Sun, A. Raju, G. Tucker, S. Panchapagesan, G. Fu, A. Mandal, S. Matsoukas, N. Strom, and S. Vitaladevuni, “Max-pooling loss training of long short-term memory networks for small-footprint keyword spotting,” in *Spoken Language Technology Workshop (SLT)*, 2016 IEEE. IEEE, 2016, pp. 474–480.
+    
+	Contain 'ref_rnn' in ex_name to use LSTM model. For example 
+	```
+	python main.py --model='CNN' -ex_name=ref_rnn_lstm --model_size_info 64 32 0 --is_training='TRAIN'
+
+	```
 
 4. Convolutional Recurrent Neural Network(CRNN) base KWS model from
     - S. O. Arik, M. Kliegl, R. Child, J. Hestness, A. Gibiansky, C. Fougner, R. Prenger, and A. Coates, “Convolutional recurrent neural networks for small-footprint keyword spotting,” *arXiv preprint arXiv:1703.05390*, 2017.
 
+	Contain 'ref_crnn' in ex_name to use DNN model. For example 
+	```
+	python main.py --model='CNN' --ex_name=ref_crnn --model_size_info 32 20 5 8 2 2 32 1 64 --is_training='TRAIN'
+
+	```
+	
 Reference
 ---
 Preprocessing source code from https://github.com/zzw922cn/Automatic_Speech_Recognition.
