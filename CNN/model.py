@@ -10,10 +10,15 @@ from termcolor import colored, cprint
 #from keras.utils import np_utils
 
 #[99,40,1]
-def wieght_similarity(input_shape, n_class):
+def wieght_similarity(input_shape, n_class, model_size_info):
     #CNN 0320_326464
+    CNN1 = model_size_info[:5]
+    CNN2 = model_size_info[5:10]
+    L_size = model_size_info[-2]
+    FC_size = model_size_info[-1]
+
     model = Sequential()
-    model.add(Conv2D(32, kernel_size=(5,5), strides=(1,1),
+    model.add(Conv2D(CNN1[0], kernel_size=(CNN1[1],CNN1[2]), strides=(CNN1[3],CNN1[4]),
         activation='relu', input_shape=input_shape, padding='valid'))
     return model
 def ref_cnn(input_shape, n_class, model_size_info):
@@ -31,11 +36,11 @@ def ref_cnn(input_shape, n_class, model_size_info):
     model.add(Conv2D(CNN1[0], kernel_size=(CNN1[1],CNN1[2]), strides=(CNN1[3],CNN1[4]),
         activation='relu', input_shape=input_shape,
         kernel_initializer=cnn_init, padding='valid'))
-    model.add(layers.BatchNormalization())
+    #model.add(layers.BatchNormalization())
     #model.add(Dropout(0.5))
-    #model.add(MaxPooling2D(pool_size=(1, 3), strides=(1, 3)))
+    model.add(MaxPooling2D(pool_size=(1, 2), strides=(1, 2)))
     model.add(Conv2D(CNN2[0], kernel_size=(CNN2[1],CNN2[2]), strides=(CNN2[3],CNN2[4]), activation='relu', kernel_initializer=cnn_init, padding='valid'))
-    model.add(layers.BatchNormalization())
+    #model.add(layers.BatchNormalization())
     #model.add(Dropout(0.5))
     # batch norm dropout
     #model.add(Conv2D(CNNChannel, (CNNkernel,CNNkernel), activation='relu',kernel_initializer=cnn_init, padding='valid'))

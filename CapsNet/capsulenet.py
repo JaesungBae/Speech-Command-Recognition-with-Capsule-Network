@@ -30,7 +30,7 @@ from capsulelayers import CapsuleLayer, PrimaryCap, Length, Mask
 
 K.set_image_data_format('channels_last')
 
-def wieght_similarity(input_shape, n_class, kernel,):
+def wieght_similarity(input_shape, n_class, kernel,model_size_info=None):
     if kernel > 19:
         conv_padding='same'
         print('kernel size big, padding to same')
@@ -40,7 +40,9 @@ def wieght_similarity(input_shape, n_class, kernel,):
     x = layers.Input(shape=input_shape)
 
     # Layer 1: Just a conventional Conv2D layer
-    out = layers.Conv2D(filters=256, kernel_size=kernel, strides=1, padding=conv_padding, activation='relu', name='conv1')(x)
+    conv_channel = 256
+    if model_size_info: conv_channel = model_size_info[1]; kernel=model_size_info[0]
+    out = layers.Conv2D(filters=conv_channel, kernel_size=kernel, strides=1, padding=conv_padding, activation='relu', name='conv1')(x)
     model = models.Model(x, out)
     return model
     
@@ -100,7 +102,7 @@ def CapsNet_WithDecoder(input_shape, n_class,  kernel, primary_channel, primary_
     manipulate_model = models.Model([x, y, noise], decoder(masked_noised_y))
     return train_model, eval_model, manipulate_model
 
-def CapsNet_NoDecoder(input_shape, n_class, kernel, primary_channel, primary_veclen,digit_veclen, dropout, routings):
+def CapsNet_NoDecoder(input_shape, n_class, kernel, primary_channel, primary_veclen,digit_veclen, dropout, routings,model_size_info):
     """
     A Capsule Network on MNIST.
     :param input_shape: data shape, 3d, [width, height, channels]
@@ -108,7 +110,9 @@ def CapsNet_NoDecoder(input_shape, n_class, kernel, primary_channel, primary_vec
     :param routings: number of routing iterations
     :return: Two Keras Models, the first one used for training, and the second one for evaluation.
             `eval_model` can also be used for training.
+    model_size_info: kernel, conv_channel, primary_channel, input_veclen, output_veclen
     """
+    kernel, conv_channel, primary_channel, primary_veclen, digit_veclen = model_size_info
     if kernel > 19:
         conv_padding='same'
         print('kernel size big, padding to same')
@@ -131,9 +135,6 @@ def CapsNet_NoDecoder(input_shape, n_class, kernel, primary_channel, primary_vec
     # Layer 4: This is an auxiliary layer to replace each capsule with its length. Just to match the true label's shape.
     # If using tensorflow, this will not be necessary. :)
     out_caps = Length(name='capsnet')(digitcaps)
-
-    # Decoder network.
-    
 
     # Models for training and evaluation (prediction)
     train_model = models.Model(x, out_caps)
