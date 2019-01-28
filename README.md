@@ -100,7 +100,7 @@ python main.py -m=CapsNet --is_training='TEST' -ex='0320_digitvec4' -d=0 --kerne
 ### Various Neural Networks base KWS models
 KWS models based on various kinds of Neural Networks(NNs) are also provided in CNN/model.py
 
-**1. Deep Neural Network(DNN) base KWS model from **
+**1. Deep Neural Network(DNN) base KWS model from**
 
     - G. Chen, C. Parada, and G. Heigold, “Small-footprint keyword spotting using deep neural networks.” in *ICASSP*, vol. 14. Citeseer, 2014, pp. 4087–4091.
     
