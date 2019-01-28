@@ -101,6 +101,7 @@ python main.py -m=CapsNet --is_training='TEST' -ex='0320_digitvec4' -d=0 --kerne
 KWS models based on various kinds of Neural Networks(NNs) are also provided in CNN/model.py
 
 **1. Deep Neural Network(DNN) base KWS model from **
+
     - G. Chen, C. Parada, and G. Heigold, “Small-footprint keyword spotting using deep neural networks.” in *ICASSP*, vol. 14. Citeseer, 2014, pp. 4087–4091.
     
 	Contain 'ref_2014icassp_dnn' in ex_name to use DNN model. For example 
@@ -109,6 +110,7 @@ KWS models based on various kinds of Neural Networks(NNs) are also provided in C
 	```
 	
 **2. CNN base KWS model from**
+
     - T. N. Sainath and C. Parada, “Convolutional neural networks for small-footprint keyword spotting,” in *Sixteenth Annual Conference of the International Speech Communication Association*, 2015.
 
 	Contain 'ref_2015is_cnn' in ex_name to use CNN model. For example 
@@ -117,6 +119,7 @@ KWS models based on various kinds of Neural Networks(NNs) are also provided in C
 	```
 	
 **3. Long Short-Term Memory(LSTM) base KWS model form**
+
     - M. Sun, A. Raju, G. Tucker, S. Panchapagesan, G. Fu, A. Mandal, S. Matsoukas, N. Strom, and S. Vitaladevuni, “Max-pooling loss training of long short-term memory networks for small-footprint keyword spotting,” in *Spoken Language Technology Workshop (SLT)*, 2016 IEEE. IEEE, 2016, pp. 474–480.
     
 	Contain 'ref_rnn' in ex_name to use LSTM model. For example 
@@ -125,6 +128,7 @@ KWS models based on various kinds of Neural Networks(NNs) are also provided in C
 	```
 
 **4. Convolutional Recurrent Neural Network(CRNN) base KWS model from**
+
     - S. O. Arik, M. Kliegl, R. Child, J. Hestness, A. Gibiansky, C. Fougner, R. Prenger, and A. Coates, “Convolutional recurrent neural networks for small-footprint keyword spotting,” *arXiv preprint arXiv:1703.05390*, 2017.
 
 	Contain 'ref_crnn' in ex_name to use CRNN model. For example 
